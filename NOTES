@@ -1,0 +1,9 @@
+This file contains additional notes about sections of the CIS Benchmark for Red Hat.
+
+2.1 Apply Latest OS Patches
+
+None of the recipes apply the latest OS patches. It is presumed the system administrator will do so using yum update during a regularly scheduled maintenance window, or on an ad hoc basis with knife. For example:
+
+    knife ssh "platform:redhat" "sudo yum update -y"
+
+However, some recipes may install packages using the "upgrade" action. Red Hat has a known reputation for only providing updates within a release cycle that are security fixes, and always maintaining backwards compatibility.
