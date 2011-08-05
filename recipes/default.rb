@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: cis-redhat
+# Cookbook Name:: cis_benchmark
 # Recipe:: default
 #
 # Copyright 2011, Joshua Timberman
@@ -17,9 +17,21 @@
 # limitations under the License.
 #
 
-unless platform?("redhat", "centos", "fedora", "scientifc")
-  Chef::Log.warn("Platform #{node['platform']} is not a Red Hat-family Linux distribution.")
+case node['platform']
+when "redhat", "centos", "fedora", "scientifc"
+
+  Chef::Log.info("Platform is a Red Hat family Linux distribution, including recipe[cis_benchmark::redhat]")
+  include_recipe "cis_benchmark::redhat"
+
+# boilerplate for future implementation
+#when "debian", "ubuntu"
+#
+#  Chef::Log.warn("Platform #{node['platform']} is not supported at this time.")
+#  return
+else
+
+  Chef::Log.warn("Platform #{node['platform']} is not supported at this time.")
   return
+
 end
 
-include_recipe "cis-redhat::ssh"
