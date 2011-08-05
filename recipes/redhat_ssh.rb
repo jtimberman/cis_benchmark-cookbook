@@ -1,6 +1,6 @@
 #
-# Cookbook Name:: cis-redhat
-# Recipe:: ssh
+# Cookbook Name:: cis_benchmark
+# Recipe:: redhat_ssh
 #
 # Copyright 2011, Joshua Timberman
 #
@@ -17,11 +17,6 @@
 # limitations under the License.
 #
 # CIS RH Benchmark section 2.3: Configure SSH
-
-unless platform?("redhat", "centos", "fedora", "scientifc")
-  Chef::Log.warn("Platform #{node['platform']} is not a Red Hat-family Linux distribution.")
-  return
-end
 
 %w{ openssh openssh-clients openssh-server }.each do |pkg|
 
