@@ -1,0 +1,193 @@
+This file contains additional notes about the CIS Benchmark for Red Hat.
+
+You should use your provisioning service (kickstart/cobbler/etc) to
+start with a clean, functional baseline "Just Enough OS"
+installation. Not all recommendations in the Benchmark are
+implemented; by default not everything is enabled/installed or
+otherwise relevant on Red Hat Enterprise family distributions.
+
+You should add mission critical services that are against the
+benchmark recommendation or non-default settings through additional
+cookbook recipes applied by specific roles.
+
+* 2 Patches, Packages, Initial Lockdown
+** 2.1 Apply Latest OS Patches
+None of the recipes apply the latest OS patches. It is presumed the system administrator will do so using yum update during a regularly scheduled maintenance window, or on an ad hoc basis with knife. For example:
+
+    knife ssh "platform:redhat" "sudo yum update -y"
+
+However, some recipes may install packages using the "upgrade" action. Red Hat has a known reputation for only providing updates within a release cycle that are security fixes, and always maintaining backwards compatibility.
+** 2.2 Validate the system before making changes
+See above for provisioning clean base systems.
+** 2.3 Configure SSH
+*** Server exceptions to recommendations
+- PasswordAuthentication yes
+Level II, no longer a requirement for CIS Benchmark. Also required
+'yes' for Root login below.
+- PermitRootLogin yes
+Red Hat family distributions don't by default create a user with
+privileged access besides root, so leave this enabled by default. If
+your environment sets up another user during the provisioning process
+or with a different Chef recipe, modify the sshd_config template.
+- Banner /etc/issue.net
+Discussed in more detail in Section 10.
+** 2.4 Enable system accounting
+Implements both sysstat and auditd.
+* 3 Minimize xinetd network services
+Not applicable, xinetd is not installed by default.
+** 3.2 Configure TCP Wrappers and Firewall
+Firewall configuration is out of scope for now. No additional action
+is taken outside the default of leaving iptables on. Opscode is
+working on a firewall cookbook to provide general LWRP for managing
+iptables rules.
+
+TCP Wrappers are monolithic files and currently outside the scope of
+this cookbook.
+* 4 Minimize boot services
+** 4.1 Daemon umask
+Level II, not implemented.
+** 4.2 Disable xinetd
+See #3 above.
+** 4.3 Sendmail
+Sendmail has been replaced by postfix. Custom configuration for
+postfix should be done with a separate cookbook, for example:
+
+http://community.opscode.com/cookbooks/postfix
+** 4.4 Disable GUI login
+Not applicable. GUI not installed by default.
+** 4.5 Disable X Font Server
+Not applicable. XFS not installed by default.
+** 4.6 Disable standard boot services
+Not applicable. This is already the default posture per above.
+** 4.7 Samba
+Not applicable. Samba not installed by default.
+** 4.8-12 NFS, NIS, Portmap
+Not applicable. These services are not installed by default.
+** 4.13 Netfs
+In the default disabled services list.
+** 4.14 Printer daemons
+Not applicable. Printer daemon not enabled by default.
+** 4.15 Web server
+See above. Use a cookbook to enable HTTPD, e.g.:
+
+http://community.opscode.com/cookbooks/apache2
+** 4.16 SNMP
+Not applicable. SNMP is not installed by default.
+** 4.17 DNS
+See above. Use a cookbook to run a DNS server, e.g.:
+
+http://community.opscode.com/cookbooks/djbdns
+http://community.opscode.com/cookbooks/unbound
+http://community.opscode.com/cookbooks/pdns
+http://community.opscode.com/cookbooks/maradns
+
+BIND is conspicuously missing. It also has the worst security track
+record of any DNS service.
+** 4.18 SQL Databases
+See above. Use a cookbook for the desired database if required,
+e.g.:
+
+http://community.opscode.com/cookbooks/mysql
+http://community.opscode.com/cookbooks/postgresql
+
+Or if "NoSQL" is your flavor:
+http://community.opscode.com/cookbooks/riak
+http://community.opscode.com/cookbooks/couchdb
+** 4.19 Squid
+Not applicable. Squid is not installed by default.
+** 4.20 Kudzu
+Not applicable. Kudzu is not enabled by default. HalD is already in
+the disabled services list.
+** 4.21-22 IMAP-cyrus or dovecot
+Not applicable. IMAP is not installed by default.
+* 5 System network parameters
+** 5.1-2 Network parameters (sysctl.conf)
+Red Hat family distributions do not yet support an `/etc/sysctl.d`
+style of configuration.
+
+The recipe will handle modifying these settings by execute statements,
+and they're not checked for idempotence. 
+/etc/sysctl.conf. For now that is out of scope for the recipes.
+
+Strategies to resolve that may be to create an /etc/sysctl.conf.d/
+with specific settings in their own files, and then write out the
+master /etc/sysctl.conf by notification all wrapped up in a LWRP.
+
+Or this cookbook might bolt on the functionality of `/etc/sysctl.d`
+borrowed from Debian/Ubuntu.
+* 6 Logging
+Use Opscode's "ntp" cookbook for managing NTP on hosts. It is
+otherwise outside the scope of the CIS benchmark implementation.
+
+Red Hat 6 uses rsyslog. Use the Opscode "rsyslog" cookbook to manage
+rsyslog on hosts. The cookbook includes capability to set up a remote
+loghost.
+
+For log management and analysis, another tool such as logstash is
+recommended. The community provides a logstash cookbook that can be
+modified. Log management is outside the scope of this cookbook.
+
+http://community.opscode.com/cookbooks/rsyslog
+http://community.opscode.com/cookbooks/ntp
+http://community.opscode.com/cookbooks/logstash
+* 7 File and directory permissions
+** 7.1-2 Managing /etc/fstab
+Management of the fstab file is presently outside the scope of this
+cookbook.
+
+At some point in the future, this may be handled with the `mount`
+resource.
+** 7.3 User mounted removable file systems
+Not implemented. Red Hat 6 changed the entire model for configuration.
+** 7.5-8 Random unauthorized file permissions sections
+Not implemented. Sections 7.5 through 7.8 are presently outside the
+scope of this cookbook and should be handled through normal system
+auditing procedures.
+** Disable USB devices
+Not implemented. Outside scope at this time. Plus cloud instances
+don't have "USB Devices" :-).
+* 8 System access, authentication, authorization
+** 8.1 Remove .rhosts support from PAM
+Not applicable. PAM does not have rhosts support.
+** 8.2 Create ftpusers files
+Not applicable. FTP is not enabled by default.
+** 8.3 Prevent X server on port 6000
+Not applicable. X11 is not installed by default.
+** 8.4-5 Cron / at restrctions, crontab
+atd is disabled above by default. If it is enabled (removed from
+disabled list and a specific recipe added?), only authorized users
+hould use it.
+** 8.6 Restrict root login to console
+See above under SSH exceptions.
+** 8.7 Grub password
+Not implemented. Currently out of scope.
+** 8.8 Require auth for single user mode
+Not implemented. Currently out of scope.
+** 8.9 Restrict NFS clients
+Not applicable. NFS is not installed by default.
+** 8.10 Enable syslog to accept messages
+Not applicable. Use `rsyslog` cookbook.
+
+http://community.opscode.com/cookbooks/rsyslog
+* 9 User accounts/environment
+Various parts of this are out of scope and should be handled in a more
+general user management cookbook (of which Opscode makes "users"
+available, or "openldap").
+
+Account expiration is generally tied to password policies and varies
+by site. We recommend *not* using passwords at all, and only allow
+users to log into systems with SSH keys (handled by the aforementioned
+"users" cookbook for sysadmins, can be extended to other user types).
+
+http://community.opscode.com/cookbooks/users
+http://community.opscode.com/cookbooks/sudo
+http://community.opscode.com/cookbooks/openldap
+* 10 Warning banners
+Change the node attribute `node['cis_benchmark']['company']` to your
+company/organization name.
+
+You may also want to create /etc/motd using the motd-tail cookbook:
+
+http://community.opscode.com/cookbooks/motd-tail
+** 10.2 Create warnings or GUI logins
+Not applicable. X11 is not installed by default.
