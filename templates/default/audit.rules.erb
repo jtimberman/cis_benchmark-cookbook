@@ -1,0 +1,62 @@
+# Generated for <%= node[:fqdn] %> by Chef.
+#
+# Local modifications will be overwritten.
+#
+# See the CIS Benchmark for your platform for full detail about this file.
+# Comments are stripped for brevity.
+#
+# This file contains the auditctl rules that are loaded 
+# whenever the audit daemon is started via the initscripts. 
+# The rules are simply the parameters that would be passed 
+# to auditctl. 
+#
+# First rule - delete all
+-D
+
+# Increase the buffers to survive stress events.
+# Make this bigger for busy systems
+-b 8192
+
+# Set failure mode to syslog notice {these two are mutually exclusive}
+-f 1
+# Set failure mode to panic {these two are mutually exclusive}
+#-f 2
+
+-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change
+-a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change
+-w /etc/localtime -p wa -k time-change
+
+-w /etc/group -p wa -k identity 
+-w /etc/passwd -p wa -k identity 
+-w /etc/gshadow -p wa -k identity 
+-w /etc/shadow -p wa -k identity 
+-w /etc/security/opasswd -p wa -k identity
+
+-a exit,always -F arch=b32 -S sethostname -S setdomainname -k system-locale
+-a exit,always -F arch=b64 -S sethostname -S setdomainname -k system-locale 
+-w /etc/issue -p wa -k system-locale 
+-w /etc/issue.net -p wa -k system-locale 
+-w /etc/hosts -p wa -k system-locale 
+-w /etc/sysconfig/network -p wa -k system-locale
+-w /etc/selinux/ -p wa -k MAC-policy
+-w /etc/sudoers -p wa -k actions
+
+-a always,exit -F arch=b32 -S chmod -S fchmod -S fchmodat -F auid>=500 -F auid!=4294967295 -k perm_mod 
+-a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=500 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b32 -S chown -S fchown -S fchownat -S lchown -F auid>=500 - F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S chown -S fchown -S fchownat -S lchown -F auid>=500 - F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b32 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=500 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=500 -F auid!=4294967295 -k perm_mod
+
+-a always,exit -F arch=b32 -S creat -S open -S openat -S exit=-EACCES -F auid>=500 -F auid!=4294967295 -k access
+-a always,exit -F arch=b32 -S creat -S open -S openat -S exit=-EPERM -F auid>=500 -F auid!=4294967295 -k access
+-a always,exit -F arch=b64 -S creat -S open -S openat -S exit=-EACCES -F auid>=500 -F auid!=4294967295 -k access
+-a always,exit -F arch=b64 -S creat -S open -S openat -S exit=-EPERM -F auid>=500 -F auid!=4294967295 -k access
+
+-a always,exit -F arch=b32 -S mount -F auid>=500 -F auid!=4294967295 -k export 
+-a always,exit -F arch=b64 -S mount -F auid>=500 -F auid!=4294967295 -k export
+
+-a always,exit -F arch=b32 -S unlink -S auid>=500 -F auid!=4294967295 -k delete
+-a always,exit -F arch=b64 -S unlink -S auid>=500 -F auid!=4294967295 -k delete
+
+# Feel free to add below this line. See auditctl man page

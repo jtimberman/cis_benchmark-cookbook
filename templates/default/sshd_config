@@ -112,8 +112,8 @@ X11Forwarding yes
 #PermitTunnel no
 #ChrootDirectory none
 
-# no default banner path
-#Banner /some/path
+# CIS Benchmark sections 2.3 and 10 require a banner.
+Banner /etc/issue.net
 
 # override default of no subsystems
 Subsystem	sftp	/usr/libexec/openssh/sftp-server

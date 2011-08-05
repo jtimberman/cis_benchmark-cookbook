@@ -1,6 +1,6 @@
 #
-# Cookbook Name:: cis_benchmark
-# Recipe:: redhat
+# Cookbook Name:: cis-benchmark
+# Recipe:: redhat_cron_allow
 #
 # Copyright 2011, Joshua Timberman
 #
@@ -17,28 +17,31 @@
 # limitations under the License.
 #
 
-case node['platform']
-when "redhat", "centos", "fedora", "scientifc"
-  
-  directory "/root" do
+%w{ at cron }.each do |f|
+  file "/etc/#{f}.allow" do
+    content node['cis_benchmark']['redhat']['cron_allow'].join("\n")
+    owner "root"
+    group "root"
+    mode 0400
+  end
+end
+
+file "/etc/crontab" do
+  owner "root"
+  group "root"
+  mode 0400
+end
+
+directory "/var/spool/cron" do
+  owner "root"
+  group "root"
+  mode 0700
+end
+
+%w{ d hourly daily weekly monthly }.each do |d|
+  directory "/etc/cron.#{d}" do
     owner "root"
     group "root"
     mode 0700
   end
-
-  include_recipe "cis_benchmark::redhat_ssh"
-  include_recipe "cis_benchmark::redhat_minimize_boot"
-  include_recipe "cis_benchmark::redhat_sysacct"
-  include_recipe "cis_benchmark::redhat_sysctl"
-  include_recipe "cis_benchmark::redhat_permissions"
-  include_recipe "cis_benchmark::redhat_cron_allow"
-  include_recipe "cis_benchmark::redhat_banner"
-  
-
-else
-
-  Chef::Log.warn("Platform #{node['platform']} is not supported at this time.")
-  return
-
 end
-

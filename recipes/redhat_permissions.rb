@@ -1,6 +1,6 @@
 #
-# Cookbook Name:: cis_benchmark
-# Recipe:: redhat
+# Cookbook Name:: cis-benchmark
+# Recipe:: redhat_permissions
 #
 # Copyright 2011, Joshua Timberman
 #
@@ -17,28 +17,18 @@
 # limitations under the License.
 #
 
-case node['platform']
-when "redhat", "centos", "fedora", "scientifc"
-  
-  directory "/root" do
+%w{ passwd group }.each do |f|
+  file "/etc/#{f}" do
     owner "root"
     group "root"
-    mode 0700
+    mode 0644
   end
-
-  include_recipe "cis_benchmark::redhat_ssh"
-  include_recipe "cis_benchmark::redhat_minimize_boot"
-  include_recipe "cis_benchmark::redhat_sysacct"
-  include_recipe "cis_benchmark::redhat_sysctl"
-  include_recipe "cis_benchmark::redhat_permissions"
-  include_recipe "cis_benchmark::redhat_cron_allow"
-  include_recipe "cis_benchmark::redhat_banner"
-  
-
-else
-
-  Chef::Log.warn("Platform #{node['platform']} is not supported at this time.")
-  return
-
 end
 
+%w{ shadow gshadow }.each do |f|
+  file "/etc/#{f}" do
+    owner "root"
+    group "root"
+    mode 0600
+  end
+end
